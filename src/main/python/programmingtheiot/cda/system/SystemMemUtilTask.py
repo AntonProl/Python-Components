@@ -19,8 +19,8 @@ class SystemMemUtilTask(BaseSystemUtilTask):
 	"""
 
 	def __init__(self):
-		pass
+		super(SystemMemUtilTask, self).__init__(name = ConfigConst.MEM_UTIL_NAME, typeID = ConfigConst.MEM_UTIL_TYPE)
 	
 	def getTelemetryValue(self) -> float:
-		pass
+		return psutil.virtual_memory().percent
 		
