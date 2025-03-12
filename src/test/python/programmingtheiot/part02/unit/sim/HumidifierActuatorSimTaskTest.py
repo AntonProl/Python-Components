@@ -9,8 +9,13 @@
 
 import logging
 import unittest
+import sys
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+# Agregar la ruta del proyecto al sys.path para que Python pueda encontrar los módulos
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common')
+
+
+from ConfigConst import ConfigConst
 
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.cda.sim.HumidifierActuatorSimTask import HumidifierActuatorSimTask

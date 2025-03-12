@@ -9,8 +9,11 @@
 
 import logging
 import unittest
+import sys
 
-from programmingtheiot.cda.sim.PressureSensorSimTask import PressureSensorSimTask
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/cda/sim')
+
+from programmingtheiot.cda.sim import PressureSensorSimTask
 
 class PressureSensorSimTaskTest(unittest.TestCase):
 	"""
@@ -41,6 +44,7 @@ class PressureSensorSimTaskTest(unittest.TestCase):
 		else:
 			logging.warning("SensorData is None.")
 			
+	#@unittest.skip("Ignore for now.")
 	def testGetTelemetryValue(self):
 		val = self.pSimTask.getTelemetryValue()
 		logging.info("Pressure data: %f", val)

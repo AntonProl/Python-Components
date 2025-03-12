@@ -10,7 +10,13 @@
 import logging
 import unittest
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+import sys
+
+# Agregar la ruta del proyecto al sys.path para que Python pueda encontrar los módulos
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common')
+
+
+from ConfigConst import ConfigConst
 
 from programmingtheiot.cda.sim.TemperatureSensorSimTask import TemperatureSensorSimTask
 
@@ -35,6 +41,7 @@ class TemperatureSensorSimTaskTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
+	#@unittest.skip("Ignore for now.")
 	def testGenerateTelemetry(self):
 		sd = self.tSimTask.generateTelemetry()
 		
