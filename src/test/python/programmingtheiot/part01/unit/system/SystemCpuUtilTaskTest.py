@@ -11,12 +11,13 @@ import sys
 import os
 
 # Agregar la ruta del proyecto al sys.path para que Python pueda encontrar los módulos
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../main/python')))
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common')
+
 
 
 import logging
 import unittest
-import programmingtheiot.part01.unit.test.ConfigConst as ConfigConst
+from ConfigConst import ConfigConst
 
 from programmingtheiot.cda.system.SystemCpuUtilTask import SystemCpuUtilTask
 
