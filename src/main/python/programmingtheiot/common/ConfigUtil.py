@@ -12,11 +12,12 @@ import logging
 import os
 import traceback
 
+
 from pathlib import Path
 
 from programmingtheiot.common.Singleton import Singleton
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 class ConfigUtil(metaclass = Singleton):
 	"""

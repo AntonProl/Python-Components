@@ -9,7 +9,7 @@
 
 from enum import Enum
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 class ResourceNameEnum(Enum):
 	"""

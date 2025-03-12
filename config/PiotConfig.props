@@ -11,8 +11,8 @@
 # MQTT client configuration information
 #
 [Mqtt.GatewayService]
-credFile       = ./cred/PiotMqttLocalCred.props
-certFile       = ./cert/PiotMqttLocalCertFile.pem
+credFile       = /home/antonprol/Escritorio/practicas_pic/Python-Components/config/cred/PiotMqttLocalCred.props
+certFile       = /home/antonprol/Escritorio/practicas_pic/Python-Components/config/cert/PiotMqttLocalCertFile.pem
 host           = localhost
 port           = 1883
 securePort     = 8883
@@ -25,8 +25,8 @@ enableCrypt    = False
 # CoAP client configuration information
 #
 [Coap.GatewayService]
-credFile       = ./cred/PiotCoapCred.props
-certFile       = ./cert/PiotCoapLocalCertFile.pem
+credFile       = /home/antonprol/Escritorio/practicas_pic/Python-Components/config/cred/PiotCoapCred.props
+certFile       = /home/antonprol/Escritorio/practicas_pic/Python-Components/config/cert/PiotCoapLocalCertFile.pem
 host           = localhost
 port           = 5683
 securePort     = 5684

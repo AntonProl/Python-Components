@@ -11,6 +11,7 @@ import logging
 import psutil
 
 from programmingtheiot.cda.system.BaseSystemUtilTask import BaseSystemUtilTask
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 class SystemMemUtilTask(BaseSystemUtilTask):
 	"""

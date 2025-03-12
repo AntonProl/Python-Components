@@ -11,7 +11,7 @@ import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
@@ -63,7 +63,7 @@ class SystemPerformanceManager(object):
 			self.scheduler.start()
 			logging.info("Started SystemPerformanceManager.")
 		else:
-		logging.warning("SystemPerformanceManager scheduler already started. Ignoring.")
+			logging.warning("SystemPerformanceManager scheduler already started. Ignoring.")
 	
 	def startManager(self):
 		logging.info("Started SystemPerformanceManager.")

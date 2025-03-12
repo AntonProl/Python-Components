@@ -7,7 +7,7 @@
 # and designed to be modified by the student as needed.
 #
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 class BaseSystemUtilTask():
 	"""
