@@ -9,8 +9,14 @@
 
 import logging
 import unittest
+import sys
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common/')
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/cda/sim/')
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/data/')
+
+
+from ConfigConst import ConfigConst
 
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.cda.sim.HvacActuatorSimTask import HvacActuatorSimTask

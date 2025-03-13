@@ -9,8 +9,11 @@
 
 import logging
 import unittest
+import sys
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common')
+
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 from programmingtheiot.cda.system.ActuatorAdapterManager import ActuatorAdapterManager
 from programmingtheiot.common.DefaultDataMessageListener import DefaultDataMessageListener

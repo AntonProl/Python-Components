@@ -17,7 +17,7 @@ class ConfigConst:
     # General Names and Defaults
     #
 
-    NOT_SET = 'Not Set'
+    NOT_SET = 'NOT SET'
 
     DEFAULT_HOST             = 'localhost'
     DEFAULT_COAP_PORT        = 5683

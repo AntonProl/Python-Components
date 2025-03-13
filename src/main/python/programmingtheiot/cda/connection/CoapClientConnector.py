@@ -10,7 +10,7 @@
 import logging
 import socket
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 

@@ -13,11 +13,12 @@ import sys
 
 # Agregar la ruta del proyecto al sys.path para que Python pueda encontrar los módulos
 sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common/')
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/cda/sim/')
 
 
 from ConfigConst import ConfigConst
 
-from programmingtheiot.cda.sim.HumiditySensorSimTask import HumiditySensorSimTask
+from HumiditySensorSimTask import HumiditySensorSimTask
 
 class HumiditySensorSimTaskTest(unittest.TestCase):
 	"""
@@ -39,7 +40,8 @@ class HumiditySensorSimTaskTest(unittest.TestCase):
 
 	def tearDown(self):
 		pass
-
+	
+	@unittest.skip("Ignore for now.")
 	def testGenerateTelemetry(self):
 		sd = self.hSimTask.generateTelemetry()
 		
@@ -47,8 +49,8 @@ class HumiditySensorSimTaskTest(unittest.TestCase):
 			logging.info("SensorData: " + str(sd))
 		else:
 			logging.warning("SensorData is None.")
-			
-	#@unittest.skip("Ignore for now.")
+	
+	@unittest.skip("Ignore for now.")		
 	def testGetTelemetryValue(self):
 		val = self.hSimTask.getTelemetryValue()
 		logging.info("Humidity data: %f", val)

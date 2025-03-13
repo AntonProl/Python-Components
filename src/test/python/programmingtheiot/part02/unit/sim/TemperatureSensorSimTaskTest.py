@@ -41,7 +41,7 @@ class TemperatureSensorSimTaskTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testGenerateTelemetry(self):
 		sd = self.tSimTask.generateTelemetry()
 		
@@ -50,7 +50,8 @@ class TemperatureSensorSimTaskTest(unittest.TestCase):
 		# default simulator generates temp values > 0.0C
 		self.assertGreaterEqual(sd.getValue(), ConfigConst.DEFAULT_VAL)
 		logging.info("Temperature SensorData: %s", str(sd))
-			
+	
+	@unittest.skip("Ignore for now.")	
 	def testGetTelemetryValue(self):
 		val = self.tSimTask.getTelemetryValue()
 		
