@@ -12,7 +12,7 @@ import unittest
 
 from time import sleep
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.cda.emulated.HumiditySensorEmulatorTask import HumiditySensorEmulatorTask
