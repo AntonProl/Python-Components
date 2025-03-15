@@ -12,8 +12,13 @@ import unittest
 
 from time import sleep
 
-from programmingtheiot.cda.system.SystemPerformanceManager import SystemPerformanceManager
-from programmingtheiot.common.DefaultDataMessageListener import DefaultDataMessageListener
+import sys
+# Agregar la ruta del proyecto al sys.path para que Python pueda encontrar los módulos
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/common')
+sys.path.insert(0,r'/home/antonprol/Escritorio/practicas_pic/Python-Components/src/main/python/programmingtheiot/cda/system')	
+
+from SystemPerformanceManager import SystemPerformanceManager
+from DefaultDataMessageListener import DefaultDataMessageListener
 
 class SystemPerformanceManagerTest(unittest.TestCase):
 	"""

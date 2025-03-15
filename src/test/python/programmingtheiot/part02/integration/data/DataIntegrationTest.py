@@ -11,7 +11,7 @@ import logging
 import os
 import unittest
 
-import programmingtheiot.common.ConfigConst as ConfigConst
+from programmingtheiot.common.ConfigConst import ConfigConst
 
 from pathlib import Path
 

@@ -56,6 +56,14 @@ class SystemPerformanceManager(object):
 
 		logging.debug('CPU utilization is %s percent, and memory utilization is %s percent.',str(cpuUtilPct),str(memUtilPct))
 		
+		sysPerfData = SystemPerformanceData()
+		sysPerfData.setLocationID(self.locationID)
+		sysPerfData.setCpuUtilization(cpuUtilPct)
+		sysPerfData.setMemoryUtilization(memUtilPct)
+
+		if self.dataMsgListener:
+			self.dataMsgListener.handleSystemPerformanceMessage(data=sysPerfData)
+
 	def setDataMessageListener(self, listener: IDataMessageListener) -> bool:
 		logging.info("Starting SystemPerformanceManager...")
 
@@ -64,6 +72,8 @@ class SystemPerformanceManager(object):
 			logging.info("Started SystemPerformanceManager.")
 		else:
 			logging.warning("SystemPerformanceManager scheduler already started. Ignoring.")
+		if listener:
+			self.dataMsgListener = listener
 	
 	def startManager(self):
 		logging.info("Started SystemPerformanceManager.")
