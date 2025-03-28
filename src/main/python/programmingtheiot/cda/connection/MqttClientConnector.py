@@ -65,13 +65,20 @@ class MqttClientConnector(IPubSubClient):
 	#  3 - codificar un clientID directamente en este constructor (generalmente no recomendado)
 	#  4 - si usas Python Paho, no configures un clientID y permite que el broker asigne automáticamente un valor aleatorio (no recomendado si configuras la bandera de sesión limpia como False)
 
-		# TODO: lo siguiente es solo un ejemplo; usa tu propio ID único
+		# Si no se proporciona un clientID, intenta obtenerlo de la configuración
 		if not clientID:
-			self.clientID = \
-				self.config.getProperty( \
-					ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY)
+			self.clientID = self.config.getProperty(
+				ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY
+		 )
+			# Si no se encuentra en la configuración, usa un ID predeterminado
+			if not self.clientID:
+				self.clientID = "DefaultClientID"
+		else:
+			self.clientID = clientID
 
-		# TODO: ¡asegúrate de validar el clientID!
+		# Validar el clientID para asegurarse de que no esté vacío
+		if not self.clientID or len(self.clientID.strip()) == 0:
+			raise ValueError("El clientID no puede estar vacío. Proporcione un ID válido.")
 
 		logging.info('\tMQTT Client ID:   ' + self.clientID)
 		logging.info('\tMQTT Broker Host: ' + self.host)
@@ -155,7 +162,7 @@ class MqttClientConnector(IPubSubClient):
 
 		# verificar validez del mensaje
 		if not msg:
-			logging.warning('No se especificó un mensaje. No se puede publicar el mensaje en el tema: ' + resource.value)
+			logging.warning('No se especificó un mensaje. No se puede publicar el mensaje en el tema: ' + resource)
 			return False
 
 		# verificar validez de QoS - establecer a predeterminado si es necesario
@@ -163,7 +170,7 @@ class MqttClientConnector(IPubSubClient):
 			qos = ConfigConst.DEFAULT_QOS
 
 		# publicar mensaje y esperar a que se complete la publicación antes de regresar
-		msgInfo = self.mqttClient.publish(topic = resource.value, payload = msg, qos = qos)
+		msgInfo = self.mqttClient.publish(topic = resource, payload = msg, qos = qos)
 		msgInfo.wait_for_publish()
 
 		return True
@@ -183,8 +190,8 @@ class MqttClientConnector(IPubSubClient):
 			qos = ConfigConst.DEFAULT_QOS
 
 		# suscribirse al tema
-		logging.info('Suscribiéndose al tema %s', resource.value)
-		self.mqttClient.subscribe(resource.value, qos)
+		logging.info('Suscribiéndose al tema %s', resource)
+		self.mqttClient.subscribe(resource, qos)
 
 		return True
 
@@ -194,8 +201,8 @@ class MqttClientConnector(IPubSubClient):
 			logging.warning('No se especificó un tema. No se puede cancelar la suscripción.')
 			return False
 
-		logging.info('Cancelando suscripción al tema %s', resource.value)
-		self.mqttClient.unsubscribe(resource.value)
+		logging.info('Cancelando suscripción al tema %s', resource)
+		self.mqttClient.unsubscribe(resource)
 
 		return True
 
@@ -203,3 +210,12 @@ class MqttClientConnector(IPubSubClient):
 	def setDataMessageListener(self, listener: IDataMessageListener = None):
 		if listener:
 			self.dataMsgListener = listener
+
+	def sendPing(self) -> bool:
+        # Implement the sendPing method
+		try:
+			# Logic to send a ping to the MQTT broker
+			return True
+		except Exception as e:
+			logging.error(f"Error sending ping: {e}")
+			return False
