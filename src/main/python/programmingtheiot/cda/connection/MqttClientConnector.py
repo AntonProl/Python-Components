@@ -36,13 +36,81 @@ class MqttClientConnector(IPubSubClient):
 		the same clientID continuously attempts to re-connect, causing the broker to
 		disconnect the previous instance.
 		"""
-		pass
+		self.config = ConfigUtil()
+		self.dataMsgListener = None
+
+		self.host = \
+			self.config.getProperty( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.HOST_KEY, ConfigConst.DEFAULT_HOST)
+
+		self.port = \
+			self.config.getInteger( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.PORT_KEY, ConfigConst.DEFAULT_MQTT_PORT)
+
+		self.keepAlive = \
+			self.config.getInteger( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
+
+		self.defaultQos = \
+			self.config.getInteger( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.DEFAULT_QOS_KEY, ConfigConst.DEFAULT_QOS)
+
+		self.mqttClient = None
+
+	# IMPORTANTE:
+	#
+	# Puedes elegir establecer clientID de varias maneras:
+	#  1 - usar el valor locationID en PiotConfig.props como el clientID (ver abajo)
+	#  2 - pasar un clientID personalizado al constructor (desde DeviceDataManager o tu prueba)
+	#  3 - codificar un clientID directamente en este constructor (generalmente no recomendado)
+	#  4 - si usas Python Paho, no configures un clientID y permite que el broker asigne automáticamente un valor aleatorio (no recomendado si configuras la bandera de sesión limpia como False)
+
+		# TODO: lo siguiente es solo un ejemplo; usa tu propio ID único
+		if not clientID:
+			self.clientID = \
+				self.config.getProperty( \
+					ConfigConst.CONSTRAINED_DEVICE, ConfigConst.DEVICE_LOCATION_ID_KEY)
+
+		# TODO: ¡asegúrate de validar el clientID!
+
+		logging.info('\tMQTT Client ID:   ' + self.clientID)
+		logging.info('\tMQTT Broker Host: ' + self.host)
+		logging.info('\tMQTT Broker Port: ' + str(self.port))
+		logging.info('\tMQTT Keep Alive:  ' + str(self.keepAlive))
 
 	def connectClient(self) -> bool:
-		pass
-		
+		if not self.mqttClient:
+			# TODO: haz que clean_session sea configurable
+			self.mqttClient = mqttClient.Client(client_id = self.clientID, clean_session = True)
+
+			self.mqttClient.on_connect = self.onConnect
+			self.mqttClient.on_disconnect = self.onDisconnect
+			self.mqttClient.on_message = self.onMessage
+			self.mqttClient.on_publish = self.onPublish
+			self.mqttClient.on_subscribe = self.onSubscribe
+
+		if not self.mqttClient.is_connected():
+			logging.info('MQTT client connecting to broker at host: ' + self.host)
+			self.mqttClient.connect(self.host, self.port, self.keepAlive)
+			self.mqttClient.loop_start()
+
+			return True
+		else:
+			logging.warning('MQTT client is already connected. Ignoring connect request.')
+
+			return False
+
 	def disconnectClient(self) -> bool:
-		pass
+		if self.mqttClient.is_connected():
+			logging.info('Disconnecting MQTT client from broker: ' + self.host)
+			self.mqttClient.loop_stop()
+			self.mqttClient.disconnect()
+
+			return True
+		else:
+			logging.warning('MQTT client already disconnected. Ignoring.')
+
+			return False
 		
 	def onConnect(self, client, userdata, flags, rc):
 		pass
@@ -83,5 +151,6 @@ class MqttClientConnector(IPubSubClient):
 	def unsubscribeFromTopic(self, resource: ResourceNameEnum = None):
 		pass
 
-	def setDataMessageListener(self, listener: IDataMessageListener = None) -> bool:
-		pass
+	def setDataMessageListener(self, listener: IDataMessageListener = None):
+		if listener:
+			self.dataMsgListener = listener
