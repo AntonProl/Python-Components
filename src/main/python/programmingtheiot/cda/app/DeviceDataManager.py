@@ -45,6 +45,11 @@ class DeviceDataManager(IDataMessageListener):
 		self.enableSensing      = \
 			self.configUtil.getBoolean( \
 				section = ConfigConst.CONSTRAINED_DEVICE, key = ConfigConst.ENABLE_SENSING_KEY)
+		
+		self.enableCoapClient = self.configUtil.getBoolean(
+    		section=ConfigConst.CONSTRAINED_DEVICE,
+    			key=ConfigConst.ENABLE_COAP_CLIENT_KEY
+)
 
 		# NOTA: esto también se puede recuperar del archivo de configuración
 		self.enableActuation    = True
@@ -94,6 +99,8 @@ class DeviceDataManager(IDataMessageListener):
 			self.mqttClient = MqttClientConnector()
 			self.mqttClient.setDataMessageListener(self)
 
+		if self.enableCoapClient:
+			self.coapClient = CoapClientConnector(dataMsgListener=self)
 
 		
 	def getLatestActuatorDataResponseFromCache(self, name: str = None) -> ActuatorData:
