@@ -71,11 +71,37 @@ class CoapClientConnector(IRequestResponseClient):
 	def sendDiscoveryRequest(self, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		pass
 
+	def sendDiscoveryRequest(self, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
+		logging.info("Discovering remote resources...")
+		
+		return self.sendGetRequest(
+        	resource=None,
+        	name='.well-known/core',
+        	enableCON=False,
+        	timeout=timeout
+    )
+
+
 	def sendDeleteRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		pass
 
 	def sendGetRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
-		pass
+		if resource or name:
+			resourcePath = self._createResourcePath(resource, name)
+			
+			logging.info("Issuing GET with path: " + resourcePath)
+
+			request = self.coapClient.mk_request(defines.Codes.GET, path=resourcePath)
+			request.token = generate_random_token(2)
+	
+			if not enableCON:
+				request.type = defines.Types["NON"]
+	
+			response = self.coapClient.send_request(request=request, timeout=timeout)
+	
+			self._onGetResponse(response=response, resourcePath=resourcePath)
+		else:
+			logging.warning("Can't test GET - no path or path list provided.")
 
 	def sendPostRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, payload: str = None, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		pass
@@ -87,7 +113,8 @@ class CoapClientConnector(IRequestResponseClient):
 		pass
 
 	def startObserver(self, resource: ResourceNameEnum = None, name: str = None, ttl: int = IRequestResponseClient.DEFAULT_TTL) -> bool:
-		pass
+		asyncio.get_event_loop().run_until_complete(self._handleStartObserveRequest(resourceName))
+
 
 	def stopObserver(self, resource: ResourceNameEnum = None, name: str = None, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		pass
@@ -116,3 +143,39 @@ class CoapClientConnector(IRequestResponseClient):
 			resourcePath = resourcePath + name
 
 		return resourcePath
+
+	def _onGetResponse(self, response, resourcePath: str = None):
+		if not response:
+			logging.warning('GET response invalid. Ignoring.')
+			return
+
+		logging.info('GET response received.')
+
+		jsonData = response.payload
+		locationPath = resourcePath.split('/') if resourcePath else []
+
+		if len(locationPath) > 2:
+			dataType = locationPath[2]
+
+			if dataType == ConfigConst.ACTUATOR_CMD:
+				try:
+					ad = DataUtil().jsonToActuatorData(jsonData)
+
+					if self.dataMsgLiSstener:
+						self.dataMsgListener.handleActuatorCommandMessage(ad)
+				except Exception as e:
+					logging.warning("Failed to decode actuator data. Ignoring: %s", jsonData)
+					logging.error("Exception: %s", str(e))
+
+				try:
+					ad = DataUtil().jsonToActuatorData(jsonData)
+
+					if self.dataMsgListener:
+						self.dataMsgListener.handleActuatorCommandMessage(ad)
+				except:
+					logging.warning("Failed to decode actuator data. Ignoring: %s", jsonData)
+					return
+		else:
+			logging.info("Response data received. Payload: %s", jsonData)
+			logging.info("Response data received. Payload: %s", jsonData)
+
