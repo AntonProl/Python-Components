@@ -21,6 +21,7 @@ from programmingtheiot.common.DefaultDataMessageListener import DefaultDataMessa
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.DataUtil import DataUtil
+from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 
 class MqttClientConnectorTest(unittest.TestCase):
 	"""
@@ -59,20 +60,40 @@ class MqttClientConnectorTest(unittest.TestCase):
 	def testConnectAndCDAManagementStatusPubSub(self):
 		qos = 1
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
-		
-		self.mcc.connectClient()
-		self.mcc.subscribeToTopic(resource = ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE, qos = qos)
+
+		# Verificar que el cliente esté conectado antes de suscribirse
+		logging.debug(f"Verificando el cliente MQTT: {self.mcc.mqttClient}")
+		if self.mcc.mqttClient is None or not self.mcc.mqttClient.is_connected():
+			logging.debug("El cliente MQTT no está conectado. Conectando...")
+			self.mcc.connectClient()
+
+		topic = str(ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE)
+		logging.debug(f"Verificando el tema: {topic}")
+
+		# Suscribirse al tema
+		logging.debug(f"Suscribiéndome al tema: {topic}")
+		self.mcc.subscribeToTopic(resource=topic, qos=qos)
+
 		sleep(5)
-		
-		self.mcc.publishMessage(resource = ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE, msg = "TEST: This is the CDA message payload.", qos = qos)
+
+		logging.debug("Publicando mensaje...")
+		self.mcc.publishMessage(resource=topic, msg="TEST: This is the CDA message payload.", qos=qos)
+
 		sleep(5)
-		
-		self.mcc.unsubscribeFromTopic(resource = ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE)
+
+		self.mcc.unsubscribeFromTopic(resource=topic)
 		sleep(5)
-		
+
 		sleep(delay)
-		
 		self.mcc.disconnectClient()
+
+	def _validate_topic(self, topic):
+		# Placeholder for topic validation logic
+		return topic
+
+	def _validate_qos(self, qos):
+		# Placeholder for QoS validation logic
+		return qos
 
 	@unittest.skip("Ignore for now.")
 	def testNewActuatorCmdPubSub(self):

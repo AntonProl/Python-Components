@@ -30,10 +30,19 @@ class MqttClientControlPacketTest(unittest.TestCase):
         self.mcc = MqttClientConnector(clientID = "MqttClient_test1")
 
     def setUp(self):
-        self.mcc.connectClient()
+        try:
+            self.assertTrue(self.mcc.connectClient(), "La conexión al servidor MQTT falló.")
+        except Exception as e:
+            logging.error(f"Error al conectar el cliente MQTT: {e}")
+            raise
 
     def tearDown(self):
-        self.mcc.disconnectClient()
+        try:
+            if not self.mcc.disconnectClient():
+                logging.warning("El cliente MQTT ya está desconectado.")
+        except Exception as e:
+            logging.error(f"Error al desconectar el cliente MQTT: {e}")
+            raise
 
     def testConnectAndDisconnect(self):
         logging.info("Probando conexión y desconexión...")

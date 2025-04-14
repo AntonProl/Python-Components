@@ -176,24 +176,47 @@ class MqttClientConnector(IPubSubClient):
 		return True
 
 	
-	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback = None, qos: int = ConfigConst.DEFAULT_QOS):
-		pass
 
+	""""
 	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		# verificar validez del recurso (tema)
 		if not resource:
 			logging.warning('No se especificó un tema. No se puede suscribir.')
 			return False
+		
 
 		# verificar validez de QoS - establecer a predeterminado si es necesario
 		if qos < 0 or qos > 2:
 			qos = ConfigConst.DEFAULT_QOS
 
+		
 		# suscribirse al tema
 		logging.info('Suscribiéndose al tema %s', resource)
 		self.mqttClient.subscribe(resource, qos)
 
 		return True
+"""
+	
+	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback=None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
+    	# Verificar validez del recurso (tema)
+		if not resource:
+			logging.warning('No se especificó un tema. No se puede suscribir.')
+			return False
+
+		# Convertir el recurso a cadena si es un enum
+		topic = resource.value if isinstance(resource, ResourceNameEnum) else str(resource)
+
+		# Verificar validez de QoS - establecer a predeterminado si es necesario
+		if qos < 0 or qos > 2:
+			qos = ConfigConst.DEFAULT_QOS
+			
+		try:
+			logging.info(f'Suscribiéndose al tema: {topic}')
+			self.mqttClient.subscribe(topic, qos)
+			return True
+		except Exception as e:
+			logging.error(f'Error al suscribirse al tema {topic}: {e}')
+			return False
 
 	def unsubscribeFromTopic(self, resource: ResourceNameEnum = None):
 		# verificar validez del recurso (tema)
