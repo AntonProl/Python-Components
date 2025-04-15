@@ -7,6 +7,7 @@
 # and designed to be modified by the student as needed.
 #
 
+import asyncio
 import logging
 import socket
 
@@ -68,8 +69,6 @@ class CoapClientConnector(IRequestResponseClient):
 		except socket.gaierror:
 			logging.info("No se pudo resolver el host: " + self.host)
 	
-	def sendDiscoveryRequest(self, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
-		pass
 
 	def sendDiscoveryRequest(self, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		logging.info("Discovering remote resources...")
@@ -109,11 +108,58 @@ class CoapClientConnector(IRequestResponseClient):
 	def sendPutRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, payload: str = None, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		pass
 
+	def sendPutRequest(self,resource: ResourceNameEnum = None,name: str = None,enableCON: bool = False,payload: str = None,timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
+		if resource or name:
+			resourcePath = self._createResourcePath(resource, name)
+			
+			logging.info("Issuing PUT with path: " + resourcePath)
+
+			request = self.coapClient.mk_request(defines.Codes.PUT, path=resourcePath)
+			request.token = generate_random_token(2)
+			request.payload = payload
+	
+			if not enableCON:
+				request.type = defines.Types["NON"]
+	
+			self.coapClient.send_request(
+				request=request,
+				callback=self._onPutResponse,
+				timeout=timeout
+			)
+		else:
+			logging.warning("Can't test PUT - no path or path list provided.")
+
+
 	def setDataMessageListener(self, listener: IDataMessageListener = None) -> bool:
 		pass
 
 	def startObserver(self, resource: ResourceNameEnum = None, name: str = None, ttl: int = IRequestResponseClient.DEFAULT_TTL) -> bool:
-		asyncio.get_event_loop().run_until_complete(self._handleStartObserveRequest(resourceName))
+		asyncio.get_event_loop().run_until_complete(self._handleStartObserveRequest(resource or name, ttl))
+
+	async def _handleStartObserveRequest(self, resourceOrName, ttl: int):
+		if not resourceOrName:
+			logging.warning("No resource or name provided for observation.")
+			return False
+
+		resourcePath = self._createResourcePath(resource=resourceOrName if isinstance(resourceOrName, ResourceNameEnum) else None, name=resourceOrName if isinstance(resourceOrName, str) else None)
+		logging.info(f"Starting observation for resource: {resourcePath} with TTL: {ttl}")
+
+		try:
+			request = self.coapClient.mk_request(defines.Codes.GET, path=resourcePath)
+			request.observe = 0
+			response = self.coapClient.send_request(request=request)
+
+			if response:
+				logging.info(f"Observation started successfully for resource: {resourcePath}")
+				self.observeRequests[resourcePath] = ttl
+				return True
+			else:
+				logging.warning(f"Failed to start observation for resource: {resourcePath}")
+				return False
+		except Exception as e:
+			logging.error(f"Exception occurred while starting observation: {str(e)}")
+			traceback.print_exception(type(e), e, e.__traceback__)
+			return False
 
 
 	def stopObserver(self, resource: ResourceNameEnum = None, name: str = None, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
@@ -178,4 +224,11 @@ class CoapClientConnector(IRequestResponseClient):
 		else:
 			logging.info("Response data received. Payload: %s", jsonData)
 			logging.info("Response data received. Payload: %s", jsonData)
+
+	def _onPutResponse(self, response):
+		if not response:
+			logging.warning('PUT response invalid. Ignoring.')
+			return
+		
+		logging.info('PUT response received: %s', response.payload)
 
