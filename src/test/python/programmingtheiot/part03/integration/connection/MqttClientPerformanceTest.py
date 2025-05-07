@@ -41,19 +41,22 @@ class MqttClientConnectorTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testConnectAndDisconnect(self):
 		startTime = time.time_ns()
 		
 		self.assertTrue(self.mqttClient.connectClient())
-		self.assertTrue(self.mqttClient.disconnectClient())
+		logging.debug("Disconnecting MQTT client...")
+		disconnectResult = self.mqttClient.disconnectClient()
+		logging.debug(f"Disconnect result: {disconnectResult}")
+		self.assertTrue(disconnectResult)
 		
 		endTime = time.time_ns()
 		elapsedMillis = (endTime - startTime) / self.NS_IN_MILLIS
 		
 		logging.info("Connect and Disconnect: " + str(elapsedMillis) + " ms")
 		
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testPublishQoS0(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 0)
 
@@ -73,8 +76,8 @@ class MqttClientConnectorTest(unittest.TestCase):
 		payloadLen = len(payload)
 		startTime = time.time_ns()
 		
-		for seqNo in range(0, maxTestRuns):
-			self.mqttClient.publishMessage(resource = ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, msg = payload, qos = qos)
+		for _ in range(0, maxTestRuns):
+			self.mqttClient.publishMessage(resource = str(ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE), msg = payload, qos = qos)
 			
 		endTime = time.time_ns()
 		elapsedMillis = (endTime - startTime) / self.NS_IN_MILLIS

@@ -18,6 +18,8 @@ from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 
 from programmingtheiot.cda.connection.IPubSubClient import IPubSubClient
 
+import ssl
+
 class MqttClientConnector(IPubSubClient):
 	"""
 	Shell representation of class for student implementation.
@@ -57,6 +59,15 @@ class MqttClientConnector(IPubSubClient):
 
 		self.mqttClient = None
 
+		# Configuración de TLS/SSL
+		self.enableEncryption = \
+			self.config.getBoolean( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.ENABLE_CRYPT_KEY)
+
+		self.pemFileName = \
+			self.config.getProperty( \
+				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.CERT_FILE_KEY)
+
 	# IMPORTANTE:
 	#
 	# Puedes elegir establecer clientID de varias maneras:
@@ -90,6 +101,24 @@ class MqttClientConnector(IPubSubClient):
 			# TODO: haz que clean_session sea configurable
 			self.mqttClient = mqttClient.Client(client_id = self.clientID, clean_session = True)
 
+
+			try:
+				if self.enableEncryption:
+					logging.info("Habilitando cifrado TLS...")
+
+					self.port = \
+						self.config.getInteger( \
+							ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.SECURE_PORT_KEY, ConfigConst.DEFAULT_MQTT_SECURE_PORT)
+
+				# NOTA IMPORTANTE: Verifica tu versión de Python para la versión
+				# de TLS admitida en el módulo `ssl`. Es posible que deba ser
+				# cambiada de lo que se indica a continuación.
+				#
+				# consulta https://docs.python.org/3/library/ssl.html para más opciones.
+					self.mqttClient.tls_set(self.pemFileName, tls_version = ssl.PROTOCOL_TLS_CLIENT)
+			except:
+				logging.warning("Fallo al habilitar el cifrado TLS. Usando conexión no cifrada.")
+		
 			self.mqttClient.on_connect = self.onConnect
 			self.mqttClient.on_disconnect = self.onDisconnect
 			self.mqttClient.on_message = self.onMessage

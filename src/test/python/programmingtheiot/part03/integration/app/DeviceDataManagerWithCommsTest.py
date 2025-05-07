@@ -123,7 +123,8 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 		sleep(60)
 		
 		ddMgr.stopManager()
-
+		
+		
 if __name__ == "__main__":
 	unittest.main()
 	
