@@ -17,6 +17,7 @@ from programmingtheiot.common.IDataMessageListener import IDataMessageListener
 from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 
 from programmingtheiot.cda.connection.IPubSubClient import IPubSubClient
+from programmingtheiot.data.DataUtil import DataUtil
 
 import ssl
 
@@ -67,6 +68,10 @@ class MqttClientConnector(IPubSubClient):
 		self.pemFileName = \
 			self.config.getProperty( \
 				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.CERT_FILE_KEY)
+		
+		self.dataMsgListener = None
+
+
 
 	# IMPORTANTE:
 	#
@@ -86,6 +91,8 @@ class MqttClientConnector(IPubSubClient):
 				self.clientID = "DefaultClientID"
 		else:
 			self.clientID = clientID
+		
+		
 
 		# Validar el clientID para asegurarse de que no esté vacío
 		if not self.clientID or len(self.clientID.strip()) == 0:
@@ -95,6 +102,8 @@ class MqttClientConnector(IPubSubClient):
 		logging.info('\tMQTT Broker Host: ' + self.host)
 		logging.info('\tMQTT Broker Port: ' + str(self.port))
 		logging.info('\tMQTT Keep Alive:  ' + str(self.keepAlive))
+
+		
 
 	def connectClient(self) -> bool:
 		if not self.mqttClient:
@@ -150,6 +159,14 @@ class MqttClientConnector(IPubSubClient):
 		
 	def onConnect(self, client, userdata, flags, rc):
 		logging.info('MQTT client connected to broker: ' + str(client))
+
+		# Subscribe to the topic
+		self.mqttClient.subscribe( \
+			topic=ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE.value, qos=self.defaultQos)
+
+		self.mqttClient.message_callback_add( \
+			sub = ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE.value, \
+			callback = self.onActuatorCommandMessage)
 		
 	def onDisconnect(self, client, userdata, rc):
 		logging.info('MQTT client disconnected from broker: ' + str(client))
@@ -181,7 +198,16 @@ class MqttClientConnector(IPubSubClient):
 		@param userdata The user reference context.
 		@param msg The message context, including the embedded payload.
 		"""
-		pass
+		logging.info('[Callback] Mensaje de comando del actuador recibido. Tópico: %s.', msg.topic)
+
+		if self.dataMsgListener:
+			try:
+				# asume que todos los datos están codificados usando UTF-8 (entre GDA y CDA)
+				actuatorData = DataUtil().jsonToActuatorData(msg.payload.decode('utf-8'))
+
+				self.dataMsgListener.handleActuatorCommandMessage(actuatorData)
+			except:
+				logging.exception("Fallo al convertir el payload del comando de actuación entrante a ActuatorData: ")
 
 	def publishMessage(self, resource: ResourceNameEnum = None, msg: str = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		# verificar validez del recurso (tema)
@@ -198,13 +224,18 @@ class MqttClientConnector(IPubSubClient):
 		if qos < 0 or qos > 2:
 			qos = ConfigConst.DEFAULT_QOS
 
+		# Convertir el recurso a cadena si es un enum
+		topic = resource.value if isinstance(resource, ResourceNameEnum) else str(resource)
+
 		# publicar mensaje y esperar a que se complete la publicación antes de regresar
-		msgInfo = self.mqttClient.publish(topic = resource, payload = msg, qos = qos)
+		msgInfo = self.mqttClient.publish(topic = topic, payload = msg, qos = qos)
 		msgInfo.wait_for_publish()
 
 		return True
 
-	
+	def setDataMessageListener(self, listener: IDataMessageListener = None):
+		if listener:
+			self.dataMsgListener = listener
 
 	""""
 	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:

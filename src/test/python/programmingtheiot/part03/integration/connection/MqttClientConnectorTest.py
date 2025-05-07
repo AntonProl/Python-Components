@@ -47,7 +47,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testConnectAndDisconnect(self):
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
 		
@@ -96,7 +96,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		# Placeholder for QoS validation logic
 		return qos
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testNewActuatorCmdPubSub(self):
 		qos = 1
 	

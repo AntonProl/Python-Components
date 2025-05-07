@@ -198,6 +198,12 @@ class DeviceDataManager(IDataMessageListener):
 		if data:
 			logging.debug("Datos de sensor entrantes recibidos (del gestor de sensores): " + str(data))
 			self._handleSensorDataAnalysis(data)
+
+			# Convierte la instancia de `SensorData` a JSON
+			jsonData = DataUtil().sensorDataToJson(data = data)
+
+			# Pasa el recurso y los datos JSON recién generados a `_handleUpstreamTransmission()`
+			self._handleUpstreamTransmission(resource = ResourceNameEnum.CDA_SENSOR_MSG_RESOURCE, msg = jsonData)
 			return True
 		else:
 			logging.warning("Los datos de sensor entrantes son inválidos (nulos). Ignorando.")
@@ -302,4 +308,19 @@ class DeviceDataManager(IDataMessageListener):
 		1) Check connection: Is there a client connection configured (and valid) to a remote MQTT or CoAP server?
 		2) Act on msg: If # 1 is true, send message upstream using one (or both) client connections.
 		"""
-		pass
+		logging.info("Transmisión ascendente invocada. Verificando integración de comunicaciones.")
+
+		# NOTA: Si se usa MQTT, lo siguiente intentará publicar el mensaje en el broker
+		if self.mqttClient:
+			if self.mqttClient.publishMessage(resource = resourceName, msg = msg):
+				logging.debug("Datos entrantes publicados al recurso (MQTT): %s", str(resourceName))
+			else:
+				logging.warning("Fallo al publicar datos entrantes al recurso (MQTT): %s", str(resourceName))
+
+		# NOTA: Si se usa CoAP, lo siguiente intentará hacer PUT del mensaje al servidor
+		# (Nota del traductor: el texto original dice PUT, pero las instrucciones anteriores mencionan POST para CoAP)
+		if self.coapClient:
+			if self.coapClient.sendPutRequest(resource = resourceName, payload = msg): # O sendPostRequest según elección
+				logging.debug("Datos del mensaje entrante enviados (PUT) al recurso (CoAP): %s", str(resourceName))
+			else:
+				logging.warning("Fallo al enviar (PUT) datos del mensaje entrante al recurso (CoAP): %s", str(resourceName))

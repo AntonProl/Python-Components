@@ -56,7 +56,7 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testStartAndStopManagerWithMqtt(self):
 		"""
 		NOTE: Be sure to enable CoAP by setting the following flag to True
@@ -122,6 +122,20 @@ class DeviceDataManagerWithCommsTest(unittest.TestCase):
 		
 		sleep(60)
 		
+		ddMgr.stopManager()
+
+	#@unittest.skip("Ignore for now.")
+	def testDeviceDataMgrTimedIntegration(self):
+	# OPCIÓN 1: Para pruebas MQTT - asegúrate de que el cliente MQTT esté habilitado en `PiotConfig.props`.
+	#           y que tu broker MQTT esté en ejecución (según las instrucciones de Configuración anteriores).
+	# OPCIÓN 2: Para pruebas CoAP - asegúrate de que el cliente CoAP esté habilitado en `PiotConfig.props`,
+	#           y que tu servidor CoAP esté en ejecución dentro de tu GDA.
+		ddMgr = DeviceDataManager()
+		ddMgr.startManager()
+
+		# 5 minutos deberían ser suficientes para ejecutar las pruebas y ajustar manualmente los valores del emulador
+		sleep(300)
+
 		ddMgr.stopManager()
 		
 		
