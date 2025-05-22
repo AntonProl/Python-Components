@@ -103,31 +103,31 @@ class MqttClientConnector(IPubSubClient):
 		logging.info('\tMQTT Broker Port: ' + str(self.port))
 		logging.info('\tMQTT Keep Alive:  ' + str(self.keepAlive))
 
+	
 		
-
 	def connectClient(self) -> bool:
-		if not self.mqttClient:
-			# TODO: haz que clean_session sea configurable
-			self.mqttClient = mqttClient.Client(client_id = self.clientID, clean_session = True)
-
-
+		if self.mqttClient and not self.mqttClient.is_connected():  # Si existe pero no está conectado
 			try:
-				if self.enableEncryption:
+				logging.debug("Intentando detener loop anterior antes de reconectar...")
+				self.mqttClient.loop_stop(force=True)  # force=True puede ser necesario
+				logging.debug("Loop anterior detenido.")
+			except Exception as e:
+				logging.warning(f"Error al detener loop anterior: {e}")
+			# Considerar hacer self.mqttClient = None aquí para forzar la recreación completa abajo
+			# self.mqttClient = None 
+
+		if not self.mqttClient:  # O si lo hiciste None arriba
+			self.mqttClient = mqttClient.Client(client_id=self.clientID, clean_session=True)
+			# Configurar TLS si está habilitado
+			if self.enableEncryption:
+				try:
 					logging.info("Habilitando cifrado TLS...")
+					self.port = self.config.getInteger(
+						ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.SECURE_PORT_KEY, ConfigConst.DEFAULT_MQTT_SECURE_PORT)
+					self.mqttClient.tls_set(self.pemFileName, tls_version=ssl.PROTOCOL_TLS_CLIENT)
+				except Exception as e:
+					logging.warning(f"Fallo al habilitar el cifrado TLS: {e}. Usando conexión no cifrada.")
 
-					self.port = \
-						self.config.getInteger( \
-							ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.SECURE_PORT_KEY, ConfigConst.DEFAULT_MQTT_SECURE_PORT)
-
-				# NOTA IMPORTANTE: Verifica tu versión de Python para la versión
-				# de TLS admitida en el módulo `ssl`. Es posible que deba ser
-				# cambiada de lo que se indica a continuación.
-				#
-				# consulta https://docs.python.org/3/library/ssl.html para más opciones.
-					self.mqttClient.tls_set(self.pemFileName, tls_version = ssl.PROTOCOL_TLS_CLIENT)
-			except:
-				logging.warning("Fallo al habilitar el cifrado TLS. Usando conexión no cifrada.")
-		
 			self.mqttClient.on_connect = self.onConnect
 			self.mqttClient.on_disconnect = self.onDisconnect
 			self.mqttClient.on_message = self.onMessage
@@ -135,23 +135,61 @@ class MqttClientConnector(IPubSubClient):
 			self.mqttClient.on_subscribe = self.onSubscribe
 
 		if not self.mqttClient.is_connected():
-			logging.info('MQTT client connecting to broker at host: ' + self.host)
-			self.mqttClient.connect(self.host, self.port, self.keepAlive)
-			self.mqttClient.loop_start()
+			try:
+				logging.info(f'MQTT client connecting to broker at host: {self.host}:{self.port}')
+				self.mqttClient.connect(self.host, self.port, self.keepAlive)
+				self.mqttClient.loop_start()
 
-			return True
+				# Sincronización CRÍTICA para tests: esperar a que on_connect se dispare.
+				# Para una solución más robusta, usa threading.Event.
+				import time
+				# Espera un momento para que el callback on_connect se ejecute
+				# y las suscripciones se procesen.
+				# Aumenta si los tests siguen siendo inestables.
+				time.sleep(1.5)  # ANTES era 1 segundo, probemos un poco más
+
+				# Devuelve el estado real DESPUÉS de dar tiempo a conectar
+				if self.mqttClient.is_connected():
+					logging.info("Conexión exitosa verificada después de la espera.")
+					return True
+				else:
+					logging.warning("La conexión falló después de la espera o on_connect no se completó/falló.")
+					# Si falló la conexión (ej. rc != 0 en on_connect), loop_start podría seguir corriendo.
+					# Es buena idea detenerlo si la conexión no es exitosa.
+					try:
+						self.mqttClient.loop_stop(force=True)
+					except Exception as e:
+						logging.error(f"Error stopping MQTT loop: {e}")
+					return False
+			except Exception as e:
+				logging.error(f"Excepción durante el intento de conexión: {e}")
+				# Asegurar que si hay error, el loop se detiene si llegó a iniciarse
+				try:
+					if self.mqttClient: 
+						self.mqttClient.loop_stop(force=True)
+				except:
+					pass
+				return False
 		else:
 			logging.warning('MQTT client is already connected. Ignoring connect request.')
-
-			return False
+			return True  # Si ya está conectado, la "solicitud de conexión" es exitosa en cierto modo
 
 	def disconnectClient(self) -> bool:
 		if self.mqttClient.is_connected():
 			logging.info('Disconnecting MQTT client from broker: ' + self.host)
 			self.mqttClient.loop_stop()
+			self.mqttClient = None
 			self.mqttClient.disconnect()
 
 			return True
+		elif self.mqttClient: # Existe pero no está conectado
+			logging.warning('MQTT client exists but is not connected. Attempting to stop loop if running.')
+			try:
+				self.mqttClient.loop_stop(force=True)
+			except Exception as e:
+				logging.error(f"Error stopping MQTT loop: {e}")
+			return False  # Indica que no estaba conectado para desconectar
+
 		else:
 			logging.warning('MQTT client already disconnected. Ignoring.')
 

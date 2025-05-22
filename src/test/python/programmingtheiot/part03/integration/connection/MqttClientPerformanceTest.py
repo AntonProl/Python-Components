@@ -88,7 +88,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 			"\n\tTesting Publish: QoS = %r | msgs = %r | payload size = %r | start = %r | end = %r | elapsed = %r", \
 			qos, maxTestRuns, payloadLen, startTime / 1000, endTime / 1000, elapsedMillis / 1000)
 		
-		#logging.info("Publish message - QoS " + str(qos) + " [" + str(maxTestRuns) + "]: " + str(elapsedMillis) + " ms")
+		logging.info("Publish message - QoS " + str(qos) + " [" + str(maxTestRuns) + "]: " + str(elapsedMillis) + " ms")
 	
 if __name__ == "__main__":
 	unittest.main()
