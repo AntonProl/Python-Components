@@ -70,6 +70,8 @@ class MqttClientConnector(IPubSubClient):
 				ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.CERT_FILE_KEY)
 		
 		self.dataMsgListener = None
+		
+		self.isConnected = False  # Estado de conexión del cliente MQTT
 
 
 
@@ -106,7 +108,7 @@ class MqttClientConnector(IPubSubClient):
 	
 		
 	def connectClient(self) -> bool:
-		if self.mqttClient and not self.mqttClient.is_connected():  # Si existe pero no está conectado
+		if self.mqttClient and not self.mqttClient.is_connected:  # Si existe pero no está conectado
 			try:
 				logging.debug("Intentando detener loop anterior antes de reconectar...")
 				self.mqttClient.loop_stop(force=True)  # force=True puede ser necesario
@@ -134,7 +136,7 @@ class MqttClientConnector(IPubSubClient):
 			self.mqttClient.on_publish = self.onPublish
 			self.mqttClient.on_subscribe = self.onSubscribe
 
-		if not self.mqttClient.is_connected():
+		if not self.mqttClient.is_connected:
 			try:
 				logging.info(f'MQTT client connecting to broker at host: {self.host}:{self.port}')
 				self.mqttClient.connect(self.host, self.port, self.keepAlive)
@@ -149,7 +151,7 @@ class MqttClientConnector(IPubSubClient):
 				time.sleep(1.5)  # ANTES era 1 segundo, probemos un poco más
 
 				# Devuelve el estado real DESPUÉS de dar tiempo a conectar
-				if self.mqttClient.is_connected():
+				if self.mqttClient.is_connected:
 					logging.info("Conexión exitosa verificada después de la espera.")
 					return True
 				else:
@@ -175,12 +177,11 @@ class MqttClientConnector(IPubSubClient):
 			return True  # Si ya está conectado, la "solicitud de conexión" es exitosa en cierto modo
 
 	def disconnectClient(self) -> bool:
-		if self.mqttClient.is_connected():
+		if self.mqttClient and self.mqttClient.is_connected:
 			logging.info('Disconnecting MQTT client from broker: ' + self.host)
 			self.mqttClient.loop_stop()
-			self.mqttClient = None
 			self.mqttClient.disconnect()
-
+			self.mqttClient = None
 			return True
 		elif self.mqttClient: # Existe pero no está conectado
 			logging.warning('MQTT client exists but is not connected. Attempting to stop loop if running.')
@@ -195,20 +196,29 @@ class MqttClientConnector(IPubSubClient):
 
 			return False
 		
+
 	def onConnect(self, client, userdata, flags, rc):
 		logging.info('MQTT client connected to broker: ' + str(client))
 
+		if rc == 0:
+			logging.info('MQTT client connected successfully.')
+			self.isConnected = True
+		else:
+			logging.error(f'Failed to connect, return code {rc}')
+			self.isConnected = False
+
 		# Subscribe to the topic
-		self.mqttClient.subscribe( \
+		self.mqttClient.subscribe(
 			topic=ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE.value, qos=self.defaultQos)
 
-		self.mqttClient.message_callback_add( \
-			sub = ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE.value, \
-			callback = self.onActuatorCommandMessage)
-		
+		self.mqttClient.message_callback_add(
+			sub=ResourceNameEnum.CDA_ACTUATOR_CMD_RESOURCE.value,
+			callback=self.onActuatorCommandMessage)
+	
 	def onDisconnect(self, client, userdata, rc):
 		logging.info('MQTT client disconnected from broker: ' + str(client))
-		
+		self.isConnected = False
+
 	def onMessage(self, client, userdata, msg):
 		payload = msg.payload
 
@@ -216,13 +226,13 @@ class MqttClientConnector(IPubSubClient):
 			logging.info('MQTT message received with payload: ' + str(payload.decode("utf-8")))
 		else:
 			logging.info('MQTT message received with no payload: ' + str(msg))
-			
+
 	def onPublish(self, client, userdata, mid):
 		logging.info('MQTT message published: ' + str(client))
 	
 	def onSubscribe(self, client, userdata, mid, granted_qos):
 		logging.info('MQTT client subscribed: ' + str(client))
-	
+
 	def onActuatorCommandMessage(self, client, userdata, msg):
 		"""
 		This callback is defined as a convenience, but does not
@@ -246,7 +256,6 @@ class MqttClientConnector(IPubSubClient):
 				self.dataMsgListener.handleActuatorCommandMessage(actuatorData)
 			except:
 				logging.exception("Fallo al convertir el payload del comando de actuación entrante a ActuatorData: ")
-
 	def publishMessage(self, resource: ResourceNameEnum = None, msg: str = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
 		# verificar validez del recurso (tema)
 		if not resource:
@@ -295,8 +304,9 @@ class MqttClientConnector(IPubSubClient):
 		return True
 """
 	
-	def subscribeToTopic(self, resource: ResourceNameEnum = None, callback=None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
-    	# Verificar validez del recurso (tema)
+	def subscribeToTopic(self, resource: ResourceNameEnum = None, qos: int = ConfigConst.DEFAULT_QOS) -> bool:
+
+		# Verificar validez del recurso (tema)
 		if not resource:
 			logging.warning('No se especificó un tema. No se puede suscribir.')
 			return False
@@ -315,7 +325,6 @@ class MqttClientConnector(IPubSubClient):
 		except Exception as e:
 			logging.error(f'Error al suscribirse al tema {topic}: {e}')
 			return False
-
 	def unsubscribeFromTopic(self, resource: ResourceNameEnum = None):
 		# verificar validez del recurso (tema)
 		if not resource:
@@ -333,9 +342,11 @@ class MqttClientConnector(IPubSubClient):
 			self.dataMsgListener = listener
 
 	def sendPing(self) -> bool:
-        # Implement the sendPing method
+		# Implement the sendPing method
 		try:
 			# Logic to send a ping to the MQTT broker
+			if self.mqttClient:
+				self.mqttClient._send_pingreq()
 			return True
 		except Exception as e:
 			logging.error(f"Error sending ping: {e}")

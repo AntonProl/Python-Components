@@ -21,7 +21,6 @@ from programmingtheiot.common.DefaultDataMessageListener import DefaultDataMessa
 from programmingtheiot.data.ActuatorData import ActuatorData
 from programmingtheiot.data.SensorData import SensorData
 from programmingtheiot.data.DataUtil import DataUtil
-from programmingtheiot.common.ResourceNameEnum import ResourceNameEnum
 
 
 class MqttClientConnectorTest(unittest.TestCase):
@@ -47,7 +46,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 	def tearDown(self):
 		pass
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testConnectAndDisconnect(self):
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
 		
@@ -57,17 +56,17 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testConnectAndCDAManagementStatusPubSub(self):
 		qos = 1
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
 
 		# Verificar que el cliente esté conectado antes de suscribirse
+		# Verificar que el cliente esté conectado antes de suscribirse
 		logging.debug(f"Verificando el cliente MQTT: {self.mcc.mqttClient}")
-		if self.mcc.mqttClient is None or not self.mcc.mqttClient.is_connected():
+		if self.mcc.mqttClient is None or not self.mcc.mqttClient.isconnected():
 			logging.debug("El cliente MQTT no está conectado. Conectando...")
 			self.mcc.connectClient()
-
 		topic = str(ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE)
 		logging.debug(f"Verificando el tema: {topic}")
 
@@ -117,7 +116,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 		
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testActuatorCmdPubSub(self):
 		qos = 0
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
@@ -139,7 +138,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testSensorMsgPub(self):
 		qos = 0
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
@@ -161,7 +160,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testCDAManagementStatusSubscribe(self):
 		qos = 1
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
@@ -173,7 +172,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		self.mcc.disconnectClient()
 
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testCDAActuatorCmdSubscribe(self):
 		qos = 1
 		delay = self.cfg.getInteger(ConfigConst.MQTT_GATEWAY_SERVICE, ConfigConst.KEEP_ALIVE_KEY, ConfigConst.DEFAULT_KEEP_ALIVE)
