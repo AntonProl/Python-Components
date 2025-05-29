@@ -64,7 +64,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		# Verificar que el cliente esté conectado antes de suscribirse
 		# Verificar que el cliente esté conectado antes de suscribirse
 		logging.debug(f"Verificando el cliente MQTT: {self.mcc.mqttClient}")
-		if self.mcc.mqttClient is None or not self.mcc.mqttClient.isconnected():
+		if self.mcc.mqttClient is None or not self.mcc.mqttClient.is_connected():
 			logging.debug("El cliente MQTT no está conectado. Conectando...")
 			self.mcc.connectClient()
 		topic = str(ResourceNameEnum.CDA_MGMT_STATUS_MSG_RESOURCE)
