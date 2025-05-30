@@ -127,6 +127,7 @@ class ConfigConst:
     TEMP_SENSOR_NAME     = 'TempSensor'
     SYSTEM_PERF_NAME     = 'SystemPerfMsg'
     CAMERA_SENSOR_NAME   = 'CameraSensor'
+    AIR_QUALITY_SENSOR_NAME = "AirQuality"
 
     COMMAND_OFF = 2
     COMMAND_ON  = 1
@@ -143,6 +144,7 @@ class ConfigConst:
     HUMIDITY_SENSOR_TYPE      = 1010
     PRESSURE_SENSOR_TYPE      = 1012
     TEMP_SENSOR_TYPE          = 1013
+    AIR_QUALITY_SENSOR_TYPE   = 1014
 
     DISPLAY_DEVICE_TYPE       = 2000
     LED_DISPLAY_ACTUATOR_TYPE = 2001
