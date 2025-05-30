@@ -121,6 +121,7 @@ class ConfigConst:
     LED_ACTUATOR_NAME        = 'LedActuator'
     HUMIDIFIER_ACTUATOR_NAME = 'HumidifierActuator'
     HVAC_ACTUATOR_NAME       = 'HvacActuator'
+    AIR_PURIFIER_ACTUATOR_NAME = "AirPurifier"
 
     HUMIDITY_SENSOR_NAME = 'HumiditySensor'
     PRESSURE_SENSOR_NAME = 'PressureSensor'
@@ -140,6 +141,7 @@ class ConfigConst:
     ENV_DEVICE_TYPE           = 1000
     HVAC_ACTUATOR_TYPE        = 1001
     HUMIDIFIER_ACTUATOR_TYPE  = 1002
+    AIR_PURIFIER_ACTUATOR_TYPE = 1003
 
     HUMIDITY_SENSOR_TYPE      = 1010
     PRESSURE_SENSOR_TYPE      = 1012

@@ -19,6 +19,8 @@ from programmingtheiot.data.ActuatorData import ActuatorData
 
 from programmingtheiot.cda.sim.HvacActuatorSimTask import HvacActuatorSimTask
 from programmingtheiot.cda.sim.HumidifierActuatorSimTask import HumidifierActuatorSimTask
+from programmingtheiot.cda.sim.AirPurifierActuatorSimTask import AirPurifierActuatorSimTask
+
 
 class ActuatorAdapterManager(object):
 	"""
@@ -47,6 +49,7 @@ class ActuatorAdapterManager(object):
 		self.humidifierActuator = None
 		self.hvacActuator       = None
 		self.ledDisplayActuator = None
+		self.airPurifierActuator = None
 
 		# see PIOT-CDA-03-007 description for thoughts on the next line of code
 		self._initEnvironmentalActuationTasks()
@@ -58,6 +61,10 @@ class ActuatorAdapterManager(object):
 
 			# create the HVAC actuator
 			self.hvacActuator = HvacActuatorSimTask()
+
+
+			# create the AIR purifier actuator
+			self.airPurifierActuator = AirPurifierActuatorSimTask()
 		
 		else:
 			hueModule = import_module('programmingtheiot.cda.emulated.HumidifierEmulatorTask', 'HumidifierEmulatorTask')
@@ -73,6 +80,11 @@ class ActuatorAdapterManager(object):
 			leDisplayModule = import_module('programmingtheiot.cda.emulated.LedDisplayEmulatorTask', 'LedDisplayEmulatorTask')
 			leClazz = getattr(leDisplayModule, 'LedDisplayEmulatorTask')
 			self.ledDisplayActuator = leClazz()
+
+			# create the AIR purifier actuator emulator
+			apModule = import_module('programmingtheiot.cda.emulated.AirPurifierEmulatorTask', 'AirPurifierEmulatorTask')
+			apClazz = getattr(apModule, 'AirPurifierEmulatorTask')
+			self.airPurifierActuator = apClazz()
 	
 	def setDataMessageListener(self, listener: IDataMessageListener) -> bool:
 		if listener:
@@ -94,6 +106,8 @@ class ActuatorAdapterManager(object):
 					responseData = self.hvacActuator.updateActuator(data)
 				elif aType == ConfigConst.LED_DISPLAY_ACTUATOR_TYPE and self.ledDisplayActuator:
 					responseData = self.ledDisplayActuator.updateActuator(data)
+				elif aType == ConfigConst.AIR_PURIFIER_ACTUATOR_TYPE and self.airPurifierActuator:
+					responseData = self.airPurifierActuator.updateActuator(data)
 				else:
 					logging.warning("No valid actuator type. Ignoring actuation for type: %s", data.getTypeID())
 
