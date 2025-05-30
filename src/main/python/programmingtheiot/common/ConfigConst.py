@@ -32,7 +32,7 @@ class ConfigConst:
     DEFAULT_STATUS           = 0
     DEFAULT_TIMEOUT          = 5
     DEFAULT_TTL              = 300
-    DEFAULT_QOS              = 0
+    DEFAULT_QOS              = 2
 
     # for purposes of this library, float precision is more then sufficient
     DEFAULT_LAT = DEFAULT_VAL

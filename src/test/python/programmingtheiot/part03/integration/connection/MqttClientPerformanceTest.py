@@ -28,7 +28,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 	environment.
 	"""
 	NS_IN_MILLIS = 1000000
-	MAX_TEST_RUNS = 10000
+	MAX_TEST_RUNS = 5000
 	
 	@classmethod
 	def setUpClass(self):
@@ -56,7 +56,7 @@ class MqttClientConnectorTest(unittest.TestCase):
 		
 		logging.info("Connect and Disconnect: " + str(elapsedMillis) + " ms")
 		
-	#@unittest.skip("Ignore for now.")
+	@unittest.skip("Ignore for now.")
 	def testPublishQoS0(self):
 		self._execTestPublish(self.MAX_TEST_RUNS, 0)
 

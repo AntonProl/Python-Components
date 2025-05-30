@@ -16,10 +16,10 @@ certFile       = /home/antonprol/Escritorio/practicas_pic/Python-Components/conf
 host           = localhost
 port           = 1883
 securePort     = 8883
-defaultQoS     = 0
+defaultQoS     = 2
 keepAlive      = 60
 enableAuth     = False
-enableCrypt    = False
+enableCrypt    = True 
 
 #
 # CoAP client configuration information
