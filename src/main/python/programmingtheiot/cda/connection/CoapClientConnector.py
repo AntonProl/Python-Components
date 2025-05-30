@@ -134,23 +134,38 @@ class CoapClientConnector(IRequestResponseClient):
 			logging.warning("Can't test DELETE - no path or path list provided.")
 
 
-	def sendGetRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
+	def sendGetRequest(self, resource: ResourceNameEnum = None, name: str = None, enableCON: bool = False, timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT):
+		response = None  # Inicializar response
 		if resource or name:
 			resourcePath = self._createResourcePath(resource, name)
-			
-			logging.info("Issuing GET with path: " + resourcePath)
 
-			request = self.coapClient.mk_request(defines.Codes.GET, path=resourcePath)
-			request.token = generate_random_token(2)
-	
-			if not enableCON:
-				request.type = defines.Types["NON"]
-	
-			response = self.coapClient.send_request(request=request, timeout=timeout)
-	
-			self._onGetResponse(response=response, resourcePath=resourcePath)
+			if not self.coapClient:
+				logging.error("Cliente CoAP no inicializado. No se puede enviar GET.")
+				return None
+
+			logging.info(f"Issuing GET {'CON' if enableCON else 'NON'} with path: {resourcePath} (timeout: {timeout}s)")
+
+			try:
+				if enableCON:
+					# Usar el método síncrono get() de HelperClient
+					response = self.coapClient.get(path=resourcePath, timeout=timeout)
+				else:
+					# Para NON, se pasa confirmable=False
+					response = self.coapClient.get(path=resourcePath, confirmable=False, timeout=timeout)
+
+				if response:
+					logging.info(f"GET Response for {resourcePath}: Code: {response.code}, Payload: {response.payload}")
+					# self._onGetResponse(response=response, resourcePath=resourcePath) # Opcional
+				else:
+					logging.warning(f"No response or timeout for GET {resourcePath}.")
+
+			except Exception as e:
+				logging.error(f"Excepción durante CoAP GET a {resourcePath}: {e}", exc_info=True)
+				response = None
 		else:
 			logging.warning("Can't test GET - no path or path list provided.")
+
+		return response  # Devolver la respuesta (o None)
 
 	def sendPostRequest(self,resource: ResourceNameEnum = None,name: str = None,enableCON: bool = False,payload: str = None,timeout: int = IRequestResponseClient.DEFAULT_TIMEOUT) -> bool:
 		if resource or name:

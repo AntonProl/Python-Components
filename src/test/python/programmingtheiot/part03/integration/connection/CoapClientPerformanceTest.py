@@ -41,7 +41,7 @@ class CoapClientPerformanceTest(unittest.TestCase):
 	def tearDown(self):
 		self.coapClient.disconnectClient()
 					
-	@unittest.skip("Ignore for now.")
+	#@unittest.skip("Ignore for now.")
 	def testGetRequestCon(self):
 		"""
 		Comment the annotation to perf test CON GET
